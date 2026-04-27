@@ -1,96 +1,175 @@
-# ShopHub — Full-Stack E-Commerce Application
+# ShopHub 🛒
 
-ShopHub is a full-stack e-commerce web application inspired by modern online marketplaces such as Amazon. It is designed to simulate a real-world shopping experience, covering both user-facing functionality and administrative control. The application demonstrates practical implementation of full-stack development concepts using React, Node.js, Express, and PostgreSQL.
-
-The platform allows users to browse products across multiple categories, search and filter items, and manage a personalized shopping cart. Users can securely register and log in using JWT-based authentication, ensuring protected access to their data and actions. The cart system is persistent and stored in the database, allowing users to seamlessly manage items and quantities before proceeding to checkout.
-
-The checkout process includes a shipping address form and a simulated payment flow, with optional support for Stripe integration. Once an order is placed, users can track its progress through different stages including pending, processing, shipped, delivered, and cancelled. This reflects a complete order lifecycle similar to real-world e-commerce platforms.
-
-In addition to user features, ShopHub includes an admin dashboard that provides control over the system. Admin users can manage products by adding, editing, or deleting them, and can update order statuses. The dashboard also provides a high-level overview of key metrics such as total users, orders, and revenue.
-
-This project was built to gain hands-on experience with designing scalable web applications, implementing authentication and authorization, managing relational databases, and structuring RESTful APIs.
+A production-grade, full-stack e-commerce application built with React, Node.js, Express, and PostgreSQL. Inspired by Amazon's shopping experience, ShopHub demonstrates real-world software engineering: role-based auth, transactional checkout, admin analytics, and clean API design.
 
 ---
 
-## Features
+## ✨ Features
 
-### User Functionality
-- User registration and login with JWT authentication  
-- Browse products by category  
-- Search and filter products  
-- Add, remove, and update items in cart  
-- Checkout with shipping details  
-- View and track order history  
+**Customer**
+- JWT-authenticated registration and login
+- Product browsing with search, category filter, and sort
+- Persistent cart (synced to database, not just localStorage)
+- Transactional checkout — stock is decremented atomically
+- Full order lifecycle: pending → processing → shipped → delivered
+- Order history with item-level detail
 
-### Admin Functionality
-- Dashboard with system statistics  
-- Add, edit, and delete products  
-- Manage and update order statuses  
-
----
-
-## Tech Stack
-
-Frontend:
-- React.js  
-
-Backend:
-- Node.js  
-- Express.js  
-
-Database:
-- PostgreSQL  
-
-Authentication:
-- JSON Web Tokens (JWT)  
-
-Payments:
-- Stripe (optional integration)  
+**Admin**
+- Dashboard with revenue, order, and user metrics
+- Add, edit, and soft-delete products
+- Update order statuses
+- View all users and orders
 
 ---
 
-## Project Structure
+## 🛠 Tech Stack
 
-## API Overview
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS |
+| State | Zustand, TanStack Query |
+| Backend | Node.js, Express, TypeScript |
+| Database | PostgreSQL (with UUID, triggers, JSON columns) |
+| Auth | JWT (jsonwebtoken + bcryptjs) |
+| Validation | Zod |
+| Security | Helmet, CORS, express-rate-limit |
+| Payments | Stripe (optional) |
+| Logging | Winston |
+| CI | GitHub Actions |
 
-Authentication:
-- POST /api/auth/register
-- POST /api/auth/login
+---
 
-Products:
-- GET /api/products
-- GET /api/products/:id
+## 📁 Project Structure
 
-Orders:
-- POST /api/orders
-- GET /api/orders
+```
+shophub/
+├── backend/
+│   ├── src/
+│   │   ├── config/        # DB connection pool
+│   │   ├── controllers/   # Route handlers (auth, products, cart, orders, admin)
+│   │   ├── middleware/    # JWT auth, error handler
+│   │   ├── routes/        # Express router
+│   │   ├── types/         # Shared TypeScript interfaces
+│   │   └── utils/         # Logger
+│   ├── tests/             # Integration tests (supertest + jest)
+│   └── schema.sql         # Full PostgreSQL schema with indexes & triggers
+│
+└── frontend/
+    └── src/
+        ├── components/    # Navbar, ProductCard, Footer, UI primitives
+        ├── pages/         # All route-level page components
+        ├── services/      # Axios client with interceptors
+        └── store/         # Zustand stores (auth, cart)
+```
 
-## Key Highlights
+---
 
-- Full-stack architecture with React frontend and Express backend  
-- Role-based authentication (User & Admin)  
-- Persistent cart stored in database  
-- Complete order lifecycle management  
-- Scalable RESTful API design  
+## 🚀 Local Setup
 
-## Architecture Overview
+### Prerequisites
+- Node.js 20+
+- PostgreSQL 14+
+- (Optional) Stripe account for payments
 
-- Frontend communicates with backend via REST APIs  
-- Backend handles business logic and authentication  
-- PostgreSQL manages relational data storage  
+### 1. Clone and set up the database
 
-## Known Limitations
+```bash
+git clone https://github.com/rachan-98/shophub.git
+cd shophub
 
-- Payment flow is simulated unless Stripe key is provided  
-- No email notifications implemented yet  
+# Create database and run schema
+createdb shophub
+psql -d shophub -f backend/schema.sql
+```
 
-## How to Test
+### 2. Configure environment
 
-1. Register as a new user  
-2. Browse products and add to cart  
-3. Place an order  
-4. Login as admin to manage products and orders  
+```bash
+cp backend/.env.example backend/.env
+# Edit backend/.env with your DB credentials and JWT secret
+```
 
-<img width="1893" height="863" alt="Screenshot (293)" src="https://github.com/user-attachments/assets/191fdfe7-f10e-4135-9925-ad2b7b81f11f" />
+### 3. Start the backend
+
+```bash
+cd backend
+npm install
+npm run dev        # http://localhost:5000
+```
+
+### 4. Start the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev        # http://localhost:5173
+```
+
+---
+
+## 🔌 API Overview
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/auth/register` | — | Register new user |
+| POST | `/api/auth/login` | — | Login, returns JWT |
+| GET | `/api/products` | — | List products (search, filter, sort, paginate) |
+| GET | `/api/products/:id` | — | Single product detail |
+| POST | `/api/products` | Admin | Create product |
+| GET | `/api/cart` | User | Get user's cart |
+| POST | `/api/cart` | User | Add item to cart |
+| POST | `/api/orders/checkout` | User | Place order (transactional) |
+| GET | `/api/orders` | User | Order history |
+| PATCH | `/api/orders/:id/cancel` | User | Cancel order |
+| GET | `/api/admin/dashboard` | Admin | Metrics and stats |
+| PATCH | `/api/admin/orders/:id/status` | Admin | Update order status |
+
+---
+
+## 🧪 Testing
+
+```bash
+cd backend
+npm test
+```
+
+Integration tests cover auth (register, login, protected routes) using Supertest + Jest.
+
+---
+
+## 🌐 Deployment
+
+| Service | Platform |
+|---------|----------|
+| Backend | Render / Railway |
+| Frontend | Vercel |
+| Database | Neon / Supabase (managed PostgreSQL) |
+
+---
+
+## 🔑 Key Engineering Decisions
+
+**Transactional checkout** — Stock decrement and order creation happen inside a PostgreSQL transaction with `FOR UPDATE` locks, preventing overselling under concurrent load.
+
+**Soft deletes on products** — `is_active = false` instead of hard deletes preserves order history integrity (foreign key references stay valid).
+
+**Zod validation** — All request bodies are validated with Zod schemas before any DB call, giving precise error messages and full type safety.
+
+**Role-based middleware** — `authenticate` and `requireRole()` middleware are composable and applied at the route level, keeping controllers clean.
+
+---
+
+## 📸 Screenshots
+
+> <img width="1893" height="863" alt="Screenshot (293)" src="https://github.com/user-attachments/assets/191fdfe7-f10e-4135-9925-ad2b7b81f11f" />
 <img width="1892" height="872" alt="Screenshot (292)" src="https://github.com/user-attachments/assets/91c904c5-b02a-4a61-9ef4-60f48dd5a0e0" />
+
+---
+
+## 📄 License
+
+MIT
+ 
+
+
 
